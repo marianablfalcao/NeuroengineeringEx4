@@ -61,16 +61,23 @@ title('Spectrum of SOI, and NOI for VF')
 %% Feature extraction 
 
 % Determine the step size                                          
-step=; 
+step=Fs * 100e-3; 
 
 % Compute the MAV and Zero-Crossing features for each time window                      
 % Hint: MAV and ZeroCross can be functions in separate files         
 
-
+pos=1;
 L2=length(signal);
 for i=1:step:(L2-step)
     % Compute MAV and ZCross features and store them in a 2D
     % "features" vector
+    window=signal(i:i+step-1,1);
+    vec_mav(pos,1)=mav(window);
+
+    vec_zCross(pos,1)=zeroCross(window);
+    
+    vec_wave(pos,1)=waveLen(window);
+    pos=pos+1;
 end
 
 % Resizing the label vector to the size of the features vector
