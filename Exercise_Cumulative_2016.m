@@ -40,9 +40,9 @@ title('Spectrum of SOI, and NOI for the stimuli application')
 %% Filtering 
 
 %Determine the Low pass cutoff frequency for your filter
-Fl=;
+Fl=800;
 %Determine the High pass cutoff frequency for your filter
-Fh=;
+Fh=2200;
 
 
 [Signal_filtered]=filtra(signal',Fs,Fl,Fh);
