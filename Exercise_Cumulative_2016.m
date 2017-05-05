@@ -88,14 +88,28 @@ end
 
 % plot the zscored features along with the corresponding labels
 
+figure(4)
+plot(zscore(vec_mav));
+hold on;
+plot(zscore(labels_resized),'r');
+title('ENG reduced signal and stimuli application labels')
+
 
 
 %% Signal-to-Noise Estimation
 
 % Extract the features for the non zero labels
+[rows_act,cols_act,values_act] = find(labels_resized'>0);
+non_zero_mav=vec_mav(rows_act);
 
-% Compute Activation 
+% Compute Activation
+    % no idea what to do here
 
 % Extract the features for the labels = zero
+[rows_rest,cols_rest,values_rest] = find(labels_resized'==0);
+zero_mav=vec_mav(rows_rest);
 
 % Compute the noise, SNR and SNR in dB
+snr=mean(non_zero_mav,1)/mean(zero_mav,1);
+snr_dB=20 * log(snr);
+
