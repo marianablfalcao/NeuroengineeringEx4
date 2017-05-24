@@ -1,6 +1,7 @@
 clear all
 close all
 neuralData=load ('Proprio_1.txt');
+neuralData_raw = neuralData;
 Fs=24414.06;
 
 % Compute the time vector from the frequendy value
@@ -9,14 +10,34 @@ time=(1:length(neuralData))./Fs;
 %% Pre-processing of the signal 
 figure(1)
 plot(time,neuralData')
-title('Original Signal'); 
+% title('Original Signal'); 
+xlabel('time [s]'); 
+ylabel('ENG [uV]'); 
+% raw signal
 
 %low pass 
 Fb=5000;
 %High Pass
 Fh=500;
 
+% figure(9)
+% subplot(1,2,1)
+% plot(time,neuralData')
+% title('Original Signal'); 
+% xlabel('time [s]'); 
+% ylabel('ENG [uV]'); 
+% xlim([10 10.02]);
+
 neuralData = filtra(neuralData,Fs,Fb,Fh);
+
+hold on
+plot(time,neuralData')
+
+% subplot(1,2,2)
+% plot(time,neuralData')
+% title('Bandpassed Signal [500Hz, 5kHz]'); 
+% xlabel('time [s]'); 
+% xlim([10 10.02]);
 
 
 %% Spike Extraction 
@@ -37,18 +58,29 @@ end
 % Plot the waveform of the extracted spikes (filteredSpikes) for each
 % threshold and choose the optimal threshold value
 
-figure(1)
+figure(8)
 plot(ns)
+% title('Detected spikes'); 
+xlabel('threshold [std variation]'); 
+ylabel('Number of detected spikes'); 
 
 figure(2)
+% title('Extracted spikes in function of std variation'); 
 for j = 1:5
     subplot(2,3,j)
+    hold on
+    title(strcat('std = ', num2str(j+1)));
+    if j == 1
+        xlabel('Epoched spike in time [s]'); 
+        ylabel('Bandpassed ENG [uV]'); 
+    end
 for i = 1:size(spiks{j},1)
-    
-    plot(spiks{j}(i,:))
+    wndw = floor(length(spiks{j}(i,:))/2);
+    plot([-wndw:wndw] ./ Fs, spiks{j}(i,:))
     hold on
 end
 end
+
 
 
 %% Principal component analysis
@@ -79,29 +111,34 @@ figure(3)
 plot(X(idx==1,1),X(idx==1,2),'r.','MarkerSize',12)
 hold on
 plot(X(idx==2,1),X(idx==2,2),'b.','MarkerSize',12)
+% % title('K-means clustering of spikes on 2 PC space'); 
+xlabel('PC 1'); 
+ylabel('PC 2'); 
 
 % Plot the  waveforms contained in the two clusters in two distinct colours 
 figure(4)
 hold on
+% % title('Clustered spikes in time'); 
+xlabel('Epoched spike in time [s]'); 
+ylabel('Bandpassed ENG [uV]'); 
+
 for i = idx==2
-plot(filteredSpikes(i,:)', 'b')
+plot([-wndw:wndw] ./ Fs, filteredSpikes(i,:)', 'b')
 end
 for i = idx==1
-plot(filteredSpikes(i,:)', 'r')
+plot([-wndw:wndw] ./ Fs, filteredSpikes(i,:)', 'r')
 end
 
 figure(5)
 hold on
+% % title('Cluster-average spikes in time'); 
+xlabel('Average epoched spike in time [s]'); 
+ylabel('Bandpassed ENG [uV]'); 
+
 a = mean(filteredSpikes(idx==1,:));
 b = mean(filteredSpikes(idx==2,:));
-for i = idx==2
-plot(a', 'b')
-end
-for i = idx==1
-plot(b', 'r')
-end
-
-
+plot(a', 'r')
+plot(b', 'b')
 
 
 %% Calculation of the Firing Rate 
@@ -121,9 +158,16 @@ end
 %% h
 % Plot the original neural signal overlapped with the detected spikes
 figure(6)
-plot(neuralData)
+plot(time, neuralData./std(neuralData))
 hold on
-scatter(spikesIndex, 10^-5*ones(1,length(spikesIndex)), 5) 
+scatter(spikesIndex / Fs, 3*ones(1,length(spikesIndex)), 15, 'r', 'filled') 
+scatter(spikesIndex / Fs, -3*ones(1,length(spikesIndex)), 15, 'r', 'filled') 
+
+% title('Detected spikes on bandpassed signal'); 
+xlabel('time [s]'); 
+ylabel('Bandpassed ENG [std]'); 
+xlim([10.85 11]);
+
 % for i = 1:length(spikesIndex)
 % scatter(spikesIndex(i):spikesIndex(i)+48, filteredSpikes(i,:)*0.2*10^-5,5) 
 % end
@@ -131,11 +175,16 @@ scatter(spikesIndex, 10^-5*ones(1,length(spikesIndex)), 5)
 % Plot the original neural signal overlapped with the calculated firing
 % rate
 figure(7)
+% title('Firing rate superimposed on bandpassed signal'); 
+xlabel('time [s]'); 
+
 yyaxis left
 hold on
-scatter(spikesIndex, 10^-5*ones(1,length(spikesIndex)), 5,'m') 
-plot(neuralData)
+% scatter(spikesIndex / Fs, 10^-5*ones(1,length(spikesIndex)), 5,'m') 
+plot(time, neuralData)
+ylabel('Bandpassed ENG [uV]'); 
 
 yyaxis right
 ylim([-120 70])
-plot(rateData)
+plot(time, rateData)
+ylabel('Rate [Hz]'); 
